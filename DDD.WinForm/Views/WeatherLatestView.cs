@@ -1,42 +1,36 @@
-﻿using DDD.Domain.Helpers;
-using DDD.Domain.ValueObjects;
-using DDD.WinForm.Common;
-using DDD.WinForm.Data;
-using Microsoft.Data.Sqlite;
+﻿using DDD.WinForm.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Data.SQLite;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DDD.WinForm
 {
     public partial class WeatherLatestView : Form
     {
-        
+        private WeatherLatestViewModel _viewModel
+            = new WeatherLatestViewModel();
 
         public WeatherLatestView()
         {
             InitializeComponent();
+            //ﾃﾞｰﾀﾊﾞｲﾝﾄﾞ
+            //ﾃﾞｰﾀﾊﾞｲﾝﾄﾞすることでSearchしたら_viewModelのテキストエリアが変わるので
+            //勝手に値が反映される
+            this.AreaIdTextBox.DataBindings.Add(
+                "Text", _viewModel, nameof(_viewModel.AreaIdText)); //viewmodelのAreaIdTextを紐づけ
+
+            this.DataDateLabel.DataBindings.Add(
+                "Text", _viewModel, nameof(_viewModel.DataDateText));
+            this.ConditionLabel.DataBindings.Add(
+                "Text", _viewModel, nameof(_viewModel.ConditionText));
+            this.TemperatureLabel.DataBindings.Add(
+                "Text", _viewModel, nameof(_viewModel.TemperatureText));
+
+
         }
 
         private void LatestButton_Click(object sender, EventArgs e)
         {
-            var dt = WeatherSQLite.GetLatest(Convert.ToInt32(AreaIdTextBox.Text));
-
-           if (dt.Rows.Count > 0) 
-           {
-               DataDateLabel.Text = dt.Rows[0]["DataDate"].ToString();
-               ConditionLabel.Text = dt.Rows[0]["Condition"].ToString();
-               TemperatureLabel.Text =
-                   FloatHelper.RoundString(Convert.ToSingle(dt.Rows[0]["Temperatrure"]),
-                   Temperature.DECIMAL_POINT) + Temperature.UNIT_NAME;
-           }
+            _viewModel.Search();
         }
 
         

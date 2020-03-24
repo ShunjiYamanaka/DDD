@@ -16,14 +16,30 @@ namespace DDD.Domain.Entities
         {
             AreaId = areaId;
             DataDate = datedate;
-            Condition = conditon;
+            Condition = new Condition(conditon);
             Temperature = new Temperature(temperature);
         }
 
         //読み取り専用のプロパティ
         public int AreaId { get; }
         public DateTime DataDate { get;  }
-        public int Condition { get;  }
+        public Condition Condition { get;  }
         public Temperature Temperature { get;  }
+
+        public bool IsMousho() 
+        {
+            if (Condition == Condition.Sunny) 
+            {
+                if (Temperature.Value > 30) 
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
+
+    
+
 }
