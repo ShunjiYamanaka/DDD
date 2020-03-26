@@ -4,6 +4,7 @@ using DDD.Domain.Entities;
 using DDD.Domain.Repositories;
 using DDD.WinForm.ViewModels;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace DDDTest.Tesrs
 {
@@ -13,12 +14,30 @@ namespace DDDTest.Tesrs
         [TestMethod]
         public void シナリオ()
         {
-            var viewModel = new WeatherLatestViewModel(new WeatherMock());
+            var watherMoc = new Mock<IWeatherRepository>();
+
+            watherMoc.Setup(x => x.GetLatest(1))
+                .Returns(new WeatherEntity(
+                    1,
+                    Convert.ToDateTime("2018/01/01 12:34:56"),
+                    2,
+                    12.3f));
+
+            //watherMoc.Setup(x => x.GetLatest(2))
+            //    .Returns(new WeatherEntity(
+            //        2,
+            //        Convert.ToDateTime("2019/05/01 0:00:00"),
+            //        1,
+            //        24.23f));
+
+            //Objectの中にwatherMocのインスタンスがある
+            var viewModel = new WeatherLatestViewModel(watherMoc.Object);
+            //var viewModel = new WeatherLatestViewModel(new WeatherMock());
             Assert.AreEqual("", viewModel.AreaIdText);
             Assert.AreEqual("", viewModel.DataDateText);
             Assert.AreEqual("", viewModel.ConditionText);
             Assert.AreEqual("", viewModel.TemperatureText);
-            
+
             viewModel.AreaIdText = "1";
             viewModel.Search();
 
@@ -30,16 +49,16 @@ namespace DDDTest.Tesrs
         }
     }
 
-    internal class WeatherMock : IWeatherRepository 
-    {
-        public WeatherEntity GetLatest(int areaId) 
-        {
-            var entity = new WeatherEntity(1, 
-                Convert.ToDateTime("2018/01/01 12:34:56"),
-                2,
-                12.3f);
+    //internal class WeatherMock : IWeatherRepository 
+    //{
+    //    public WeatherEntity GetLatest(int areaId) 
+    //    {
+    //        var entity = new WeatherEntity(1, 
+    //            Convert.ToDateTime("2018/01/01 12:34:56"),
+    //            2,
+    //            12.3f);
 
-            return entity;
-        }
-    }
+    //        return entity;
+    //    }
+    //}
 }
