@@ -1,6 +1,8 @@
-﻿using DDD.Domain.Repositories;
+﻿using DDD.Domain;
+using DDD.Domain.Repositories;
 using DDD.Domain.ValueObjects;
 using DDD.Infrastructure.Data;
+using DDD.Infrastructure.SQLite;
 using System;
 using System.ComponentModel;
 
@@ -9,20 +11,28 @@ namespace DDD.WinForm.ViewModels
     public class WeatherLatestViewModel :ViewModelBase
     {
         private IWeatherRepository _weather;
+        IAreasRepository _areas;
 
         public WeatherLatestViewModel()
-            :this(new WeatherSQLite())
+            :this(new WeatherSQLite(), new AreasSQLite())
         {
         }
 
-        public WeatherLatestViewModel(IWeatherRepository weather) 
+        public WeatherLatestViewModel(IWeatherRepository weather,
+            IAreasRepository areas)
         {
             _weather = weather;
+            _areas = areas;
+
+            foreach (var area in _areas.GetData())
+            {
+                Areas.Add(new AreaEntity(area.AreaId, area.AreaName));
+            }
         }
 
-        private string _areaIdText = String.Empty;
-        public string AreaIdText {
-            get { return _areaIdText; }
+        private object _selectedAreaId;
+        public Object SelectedAreaId {
+            get { return _selectedAreaId; }
             set 
             {
                 //SetPropertyより不要
@@ -34,7 +44,7 @@ namespace DDD.WinForm.ViewModels
                 ////_areaIdText = value;
                 //ViewModelBaseクラスにより不要
                 //OnPropertyChanged(nameof(AreaIdText));
-                SetProperty(ref _areaIdText, value);
+                SetProperty(ref _selectedAreaId, value);
             }
         }
 
@@ -88,6 +98,11 @@ namespace DDD.WinForm.ViewModels
                 SetProperty(ref _temperatureText, value);
             }
         }
+
+        //同期をとるためBidingList
+        public BindingList<AreaEntity> Areas { get; set; }
+        = new BindingList<AreaEntity>();
+
         //public string DataDateText { get; set; } = string.Empty;
         //public string ConditionText { get; set; } = string.Empty;
         //public string TemperatureText { get; set; } = string.Empty;
@@ -97,16 +112,22 @@ namespace DDD.WinForm.ViewModels
 
         public void Search()
         {
-            var entity = _weather.GetLatest(Convert.ToInt32(AreaIdText));
-            if (entity != null)
+            var entity = _weather.GetLatest(Convert.ToInt32(_selectedAreaId));
+            if (entity == null) 
+            {
+                DataDateText = string.Empty;
+                ConditionText = string.Empty;
+                TemperatureText = string.Empty;
+            }
+            else
             {
                 DataDateText = entity.DataDate.ToString();
                 ConditionText = entity.Condition.DisplayValue;
+                TemperatureText = entity.Temperature.DisplayValueWithUnitSpace;
                 //TemperatureText =
                 //    Common.CommonFunc.RoundString(entity.Temperature,
                 //    Temperature.DECIMAL_POINT) + " " +
                 //    Temperature.UNIT_NAME;
-                TemperatureText = entity.Temperature.DisplayValueWithUnitSpace;
             }
             ////ViewModelBaseクラスにより不要
             //OnPropertyChanged("");

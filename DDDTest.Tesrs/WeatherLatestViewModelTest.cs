@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
+using DDD.Domain;
 using DDD.Domain.Entities;
 using DDD.Domain.Repositories;
 using DDD.WinForm.ViewModels;
@@ -30,21 +32,44 @@ namespace DDDTest.Tesrs
             //        1,
             //        24.23f));
 
+            var areas = new List<AreaEntity>();
+            areas.Add(new AreaEntity(1, "東京"));
+            //areas.Add(new AreaEntity(2, "神戸"));
+            areas.Add(new AreaEntity(3, "沖縄"));
+
+            var areasMock = new Mock<IAreasRepository>();
+            areasMock.Setup(x => x.GetData()).Returns(areas);
+
             //Objectの中にwatherMocのインスタンスがある
-            var viewModel = new WeatherLatestViewModel(watherMoc.Object);
+            var viewModel = new WeatherLatestViewModel(
+                watherMoc.Object,
+                areasMock.Object
+                );
             //var viewModel = new WeatherLatestViewModel(new WeatherMock());
-            Assert.AreEqual("", viewModel.AreaIdText);
+            Assert.IsNull(viewModel.SelectedAreaId);
             Assert.AreEqual("", viewModel.DataDateText);
             Assert.AreEqual("", viewModel.ConditionText);
             Assert.AreEqual("", viewModel.TemperatureText);
 
-            viewModel.AreaIdText = "1";
+            //Assert.AreEqual(2, viewModel.Areas.Count);
+            Assert.AreEqual(1, viewModel.Areas[0].AreaId);
+            Assert.AreEqual("東京", viewModel.Areas[0].AreaName);
+
+            viewModel.SelectedAreaId = 1;
             viewModel.Search();
 
-            Assert.AreEqual("1", viewModel.AreaIdText);
+            Assert.AreEqual(1, viewModel.SelectedAreaId);
             Assert.AreEqual("2018/01/01 12:34:56", viewModel.DataDateText);
             Assert.AreEqual("曇り", viewModel.ConditionText);
             Assert.AreEqual("12.30 ℃", viewModel.TemperatureText);
+
+            viewModel.SelectedAreaId = 3;
+            viewModel.Search();
+
+            Assert.AreEqual(3, viewModel.SelectedAreaId);
+            Assert.AreEqual("", viewModel.DataDateText);
+            Assert.AreEqual("", viewModel.ConditionText);
+            Assert.AreEqual("", viewModel.TemperatureText);
 
         }
     }
